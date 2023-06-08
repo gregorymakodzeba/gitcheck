@@ -1,0 +1,104 @@
+syntax = "proto3";
+
+package listings.v1;
+
+service ListingsService {
+  // returns information for a listing by tokenId
+  rpc GetListing(GetListingRequest) returns (GetListingResponse) {}
+
+  // creates or updates a listing
+  rpc SetListing(SetListingRequest) returns (SetListingResponse) {}
+
+  // cancels a listing
+  rpc CancelListing(CancelListingRequest) returns (CancelListingResponse) {}
+
+  // purchase the NFT from the listing
+  rpc AcceptListing(AcceptListingRequest) returns (AcceptListingResponse) {}
+
+  // collect ListingUpdated events
+  rpc GetListingUpdatedEvents(GetListingUpdatedEventsRequest) returns (GetListingUpdatedEventsResponse) {}
+
+  // collect ListingUpdated events using server streaming
+  rpc StreamListingUpdatedEvents(StreamListingUpdatedEventsRequest) returns (stream StreamListingUpdatedEventsResponse) {}
+
+  // collect ListingUpdated events for a particular transaction hash
+  rpc GetListingUpdatedEventsFromTxHash(GetListingUpdatedEventsFromTxHashRequest) returns (GetListingUpdatedEventsFromTxHashResponse) {}
+}
+
+message GetListingRequest {
+  uint32 token_id = 1; // the NFT token of interest
+}
+message GetListingResponse {
+  string seller_address = 1; // the seller address (from the Tokens contract)
+  string price_atto_sci = 2; // the current price for the auction
+  string beneficiary_address = 3; // the beneficiary address (from the Tokens contract)
+  string royalty_atto_sci = 4; // the calculated royalty in attoSCI (based on Tokens contract flags)
+  string end_time_sec = 5; // the end time for the auction ("0" means "indefinite")
+  string end_price_atto_sci = 6; // the final price of the auction (in attoSCI)
+}
+
+message SetListingRequest {
+  uint32 seller_id = 1; // the userId of the seller
+  uint32 token_id = 2; // the NFT token of interest
+  string start_time_sec = 3; // the start time for the auction (seconds since Jan 1, 1970)
+  string end_time_sec = 4; // the end time for the auction ("0" means "indefinite")
+  string start_price_atto_sci = 5; // the starting price of the auction
+  string end_price_atto_sci = 6; // the final price of the auction
+}
+message SetListingResponse {
+  string seller_address = 1; // the public address of the seller's custodial wallet
+  string cost_atto_gas = 2; // the gas cost for the action
+  string tx_hash = 3; // the hash of the transaction on chain
+}
+
+message CancelListingRequest {
+  uint32 seller_id = 1; // the userId of the seller
+  uint32 token_id = 2; // the NFT token of interest
+}
+message CancelListingResponse {
+  string seller_address = 1; // the public address of the seller's custodial wallet
+  string cost_atto_gas = 2; // the gas cost for the action
+  string tx_hash = 3; // the hash of the transaction on chain
+}
+
+message AcceptListingRequest {
+  uint32 seller_id = 1; // the userId of the seller
+  uint32 token_id = 2; // the NFT token of interest
+  uint32 buyer_id = 3; // the userId of the buyer
+}
+message AcceptListingResponse {
+  string seller_address = 1; // the public address of the seller's custodial wallet
+  string buyer_address = 2; // the public address of the buyer's custodial wallet
+  string cost_atto_gas = 3; // the gas cost for the action
+  string tx_hash = 4; // the hash of the transaction on chain
+}
+
+message GetListingUpdatedEventsRequest {
+  uint32 from_block = 1; // the first block of interest
+  uint32 to_block = 2; // the last block of interest
+}
+message ListingUpdatedEvent {
+  string block_number = 1; // the block that emitted this Event
+  string token_id = 2; // the NFT id (uint64)
+  string seller_address = 3; // the public address of the seller's custodial wallet
+  string start_time_sec = 4; // the start time for the auction (seconds since Jan 1, 1970)
+  string end_time_sec = 5; // the end time for the auction ("0" means "indefinite")
+  string start_price_atto_sci = 6; // the starting price of the auction
+  string end_price_atto_sci = 7; // the final price of the auction
+  string tx_hash = 8; // the hash of the transaction on chain
+}
+message GetListingUpdatedEventsResponse {
+  repeated ListingUpdatedEvent events = 1; // collected from NFTUpdated events
+}
+
+message StreamListingUpdatedEventsRequest {}
+message StreamListingUpdatedEventsResponse {
+  ListingUpdatedEvent event = 1;
+}
+
+message GetListingUpdatedEventsFromTxHashRequest {
+  string tx_hash = 1; // the hash of the transaction on chain
+}
+message GetListingUpdatedEventsFromTxHashResponse {
+  repeated ListingUpdatedEvent events = 1; // List of ListingUpdated events
+}

@@ -1,0 +1,104 @@
+syntax = "proto3";
+
+package offers.v1;
+
+service OffersService {
+  // returns information for a Offer by userId and tokenId
+  rpc GetOffer(GetOfferRequest) returns (GetOfferResponse) {}
+
+  // creates or updates a Offer
+  rpc SetOffer(SetOfferRequest) returns (SetOfferResponse) {}
+
+  // cancels a Offer
+  rpc CancelOffer(CancelOfferRequest) returns (CancelOfferResponse) {}
+
+  // sells an NFT according to an Offer
+  rpc AcceptOffer(AcceptOfferRequest) returns (AcceptOfferResponse) {}
+
+  // collect OfferUpdated events
+  rpc GetOfferUpdatedEvents(GetOfferUpdatedEventsRequest) returns (GetOfferUpdatedEventsResponse) {}
+
+  // collect OfferUpdated events using server streaming
+  rpc StreamOfferUpdatedEvents(StreamOfferUpdatedEventsRequest) returns (stream StreamOfferUpdatedEventsResponse) {}
+
+  // collect OfferUpdated events for a particular transaction hash
+  rpc GetOfferUpdatedEventsFromTxHash(GetOfferUpdatedEventsFromTxHashRequest) returns (GetOfferUpdatedEventsFromTxHashResponse) {}
+}
+
+message GetOfferRequest {
+  uint32 token_id = 1; // the NFT token of interest
+  uint32 buyer_id = 2; // the userId of the buyer
+}
+message GetOfferResponse {
+  string buyer_address = 1; // the public address of the buyer's custodial wallet
+  string price_atto_sci = 2; // the full precision amount offered (ex. "25000000000000000000000000")
+  string seller_address = 3; // the public address of the seller's custodial wallet
+  string beneficiary_address = 4; // the beneficiary address (from the Tokens contract)
+  string royalty_atto_sci = 5; // the calculated royalty (based on Tokens contract flags)
+  string end_time_sec = 6; // the end time for the offer ("0" means "indefinite") (seconds since Jan 1, 1970)
+}
+
+message SetOfferRequest {
+  uint32 token_id = 1; // the NFT token of interest
+  uint32 buyer_id = 2; // the userId of the buyer
+  string end_time_sec = 3; // the end time for the offer ("0" means "indefinite")
+  string price_atto_sci = 4; // the full precision attoSCI amount offered (ex. "25000000000000000000000000")
+}
+message SetOfferResponse {
+  string buyer_address = 1; // the public address of the buyer's custodial wallet
+  string cost_atto_gas = 2; // the gas cost for the action
+  string tx_hash = 3; // the hash of the transaction on chain
+}
+
+message CancelOfferRequest {
+  uint32 token_id = 1; // the NFT token of interest
+  uint32 buyer_id = 2; // the userId of the buyer
+}
+message CancelOfferResponse {
+  string buyer_address = 1; // the public address of the buyer's custodial wallet
+  string cost_atto_gas = 2; // the gas cost for the action
+  string tx_hash = 3; // the hash of the transaction on chain
+}
+
+message AcceptOfferRequest {
+  uint32 seller_id = 1; // the userId of the seller
+  uint32 token_id = 2; // the NFT token of interest
+  uint32 buyer_id = 3; // the userId of the buyer
+  string price_atto_sci = 4; // the amount to be accepted in attoSCI (as a sanity check)
+}
+message AcceptOfferResponse {
+  string seller_address = 1; // the public address of the seller's custodial wallet
+  string buyer_address = 2; // the public address of the buyer's custodial wallet
+  string cost_atto_gas = 3; // the gas cost for the action
+  string tx_hash = 4; // the hash of the transaction on chain
+}
+
+message GetOfferUpdatedEventsRequest {
+  uint32 from_block = 1; // the first block of interest
+  uint32 to_block = 2; // the last block of interest
+}
+
+message OfferUpdatedEvent {
+  string block_number = 1; // the block that emitted this Event
+  string token_id = 2; // the NFT id (uint64)
+  string buyer_address = 3; // the public address of the buyer's custodial wallet
+  string end_time_sec = 4; // the end time for the auction ("0" means "indefinite")
+  string price_atto_sci = 5; // the offered amount in attoSCI
+  string tx_hash = 6; // the hash of the transaction on chain
+}
+
+message GetOfferUpdatedEventsResponse {
+  repeated OfferUpdatedEvent events = 1; // collected from OfferUpdated events
+}
+
+message StreamOfferUpdatedEventsRequest {}
+message StreamOfferUpdatedEventsResponse {
+  OfferUpdatedEvent event = 1;
+}
+
+message GetOfferUpdatedEventsFromTxHashRequest {
+  string tx_hash = 1; //  the hash of the transaction on chain
+}
+message GetOfferUpdatedEventsFromTxHashResponse {
+  repeated OfferUpdatedEvent events = 1; // List of OfferUpdated events
+}

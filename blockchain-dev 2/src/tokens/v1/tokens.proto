@@ -1,0 +1,309 @@
+syntax = "proto3";
+
+package tokens.v1;
+
+service TokensService {
+  // returns the SCI balance for a provided address
+  rpc GetAddressBalance(GetAddressBalanceRequest) returns (GetAddressBalanceResponse) {}
+
+  // returns the SCI balance for a provided custodial wallet (wallet index = userId)
+  rpc GetUserBalance(GetUserBalanceRequest) returns (GetUserBalanceResponse) {}
+
+  // moves tokens from the ScieNFT hot wallet to a custodial wallet (wallet index = userId)
+  rpc CreditUser(CreditUserRequest) returns (CreditUserResponse) {}
+
+  // move SCI tokens between users
+  rpc TransferSCI(TransferSCIRequest) returns (TransferSCIResponse) {}
+
+  // mint an NFT
+  rpc MintNFT(MintNFTRequest) returns (MintNFTResponse) {}
+
+  // append additional content to an NFT
+  rpc EnhanceNFT(EnhanceNFTRequest) returns (EnhanceNFTResponse) {}
+
+  // get NFT info
+  rpc GetNFT(GetNFTRequest) returns (GetNFTResponse) {}
+
+  // get events related to NFT updates
+  rpc GetNFTUpdatedEvents(GetNFTUpdatedEventsRequest) returns (GetNFTUpdatedEventsResponse) {}
+
+  // get events related to admin content list updates
+  rpc GetAdminContentNodeCreatedEvents(GetAdminContentNodeCreatedEventsRequest) returns (GetAdminContentNodeCreatedEventsResponse) {}
+
+  // get events related to owner content list updates
+  rpc GetOwnerContentNodeCreatedEvents(GetOwnerContentNodeCreatedEventsRequest) returns (GetOwnerContentNodeCreatedEventsResponse) {}
+
+  // get events related to token transfers
+  rpc GetTransferEvents(GetTransferEventsRequest) returns (GetTransferEventsResponse) {}
+
+  // get events related to marketplace sales
+  rpc GetMarketplaceSaleEvents(GetMarketplaceSaleEventsRequest) returns (GetMarketplaceSaleEventsResponse) {}
+
+  // get events related to NFT updates using server streaming
+  rpc StreamNFTUpdatedEvents(StreamNFTUpdatedEventsRequest) returns (stream StreamNFTUpdatedEventsResponse) {}
+
+  // get events related to admin content list updates using server streaming
+  rpc StreamAdminContentNodeCreatedEvents(StreamAdminContentNodeCreatedEventsRequest) returns (stream StreamAdminContentNodeCreatedEventsResponse) {}
+
+  // get events related to owner content list updates using server streaming
+  rpc StreamOwnerContentNodeCreatedEvents(StreamOwnerContentNodeCreatedEventsRequest) returns (stream StreamOwnerContentNodeCreatedEventsResponse) {}
+
+  // get events related to token transfers using server streaming
+  rpc StreamTransferEvents(StreamTransferEventsRequest) returns (stream StreamTransferEventsResponse) {}
+
+  // get events related to marketplace sales using server streaming
+  rpc StreamMarketplaceSaleEvents(StreamMarketplaceSaleEventsRequest) returns (stream StreamMarketplaceSaleEventsResponse) {}
+
+  // get events related to NFT updates for a particular transaction hash
+  rpc GetNFTUpdatedEventsFromTxHash(GetNFTUpdatedEventsFromTxHashRequest) returns (GetNFTUpdatedEventsFromTxHashResponse) {}
+
+  // get events related to admin content list updates for a particular transaction hash
+  rpc GetAdminContentNodeCreatedEventsFromTxHash(GetAdminContentNodeCreatedEventsFromTxHashRequest) returns (GetAdminContentNodeCreatedEventsFromTxHashResponse) {}
+
+  // get events related to owner content list updates for a particular transaction hash
+  rpc GetOwnerContentNodeCreatedEventsFromTxHash(GetOwnerContentNodeCreatedEventsFromTxHashRequest) returns (GetOwnerContentNodeCreatedEventsFromTxHashResponse) {}
+
+  // get events related to token transfers for a particular transaction hash
+  rpc GetTransferEventsFromTxHash(GetTransferEventsFromTxHashRequest) returns (GetTransferEventsFromTxHashResponse) {}
+
+  // get events related to marketplace sales for a particular transaction hash
+  rpc GetMarketplaceSaleEventsFromTxHash(GetMarketplaceSaleEventsFromTxHashRequest) returns (GetMarketplaceSaleEventsFromTxHashResponse) {}
+}
+
+enum ContentType {
+  CONTENT_TYPE_UNSPECIFIED = 0;
+  CONTENT_TYPE_OWNER = 1;
+  CONTENT_TYPE_ADMIN = 2;
+}
+
+message GetAddressBalanceRequest {
+  string user_address = 1; // the hex address of interest (ex. "0x574B8c3df7413c5873F99422db020835712e9770")
+}
+message GetAddressBalanceResponse {
+  string amount_atto_sci = 1; // the full precision amount (ex. "25000000000000000000000000")
+}
+
+message GetUserBalanceRequest {
+  uint32 user_id = 1; // the userId of interest; used to derive the custodial wallet key
+}
+message GetUserBalanceResponse {
+  string amount_atto_sci = 1; // the full precision amount (ex. "25000000000000000000000000")
+  string user_address = 2; // the public address of the custodial wallet
+}
+
+message CreditUserRequest {
+  uint32 user_id = 1; // the userId to credit (from the ScieNFT hot wallet)
+  string amount_atto_sci = 2; // the full precision amount to transfer (ex. "25000000000000000000000000")
+}
+message CreditUserResponse {
+  string user_address = 1; // the public address of the custodial wallet
+  string cost_atto_gas = 2; // the gas cost for the action
+  string tx_hash = 3; // the hash of the transaction on chain
+}
+
+message TransferSCIRequest {
+  uint32 from_id = 1; // the sender's userId
+  uint32 to_id = 2; // the recipient's userId
+  string amount_atto_sci = 3; // the full precision amount to transfer
+}
+message TransferSCIResponse {
+  string from_address = 1; // the public address of the sender's custodial wallet
+  string to_address = 2; // the public address of the recipient's custodial wallet
+  string cost_atto_gas = 3; // the gas cost for the action
+  string tx_hash = 4; // the hash of the transaction on chain
+}
+
+message MintNFTRequest {
+  string content_cid_v1 = 1; // the ipfs CIDv1 address for the metadata.json file (head of adminContent list)
+  uint32 admin_id = 2; // the userId for the initial Admin
+  uint32 owner_id = 3; // the userId for the initial Owner
+  uint32 beneficiary_id = 4; // the userID for the initial Beneficiary
+}
+message MintNFTResponse {
+  string admin_address = 1; // the public address for the initial Admin
+  string owner_address = 2; // the public address for the initial Owner
+  string beneficiary_address = 3; // the public address for the initial Beneficiary
+  string cost_atto_gas = 4; // the gas cost for the action
+  string tx_hash = 5; // the hash of the transaction on chain
+}
+
+message EnhanceNFTRequest {
+  string token_id = 1; // the NFT id (uint64)
+  string new_content_cid_v1 = 2; // the ipfs CIDv1 address for the metadata.json file
+  ContentType content_type = 3; // the list that new_content updates (owner or admin)
+}
+message EnhanceNFTResponse {
+  string cost_atto_gas = 1; // the gas cost for the action
+  string tx_hash = 2; // the hash of the transaction on chain
+}
+
+message GetNFTRequest {
+  string token_id = 1; // the NFT id (uint64)
+}
+message GetNFTResponse {
+  string token_id = 1; // the NFT id (uint64)
+  repeated string owner_content_cid_v1 = 2; // a list of ipfs CIDv1 addresses (each for a metadata.json file)
+  repeated string admin_content_cid_v1 = 3; // a list of ipfs CIDv1 addresses (each for a metadata.json file)
+  repeated string owner_created_at_sec = 4; // a list of creation times of the owner content (seconds since Jan 1, 1970)
+  repeated string admin_created_at_sec = 5; // a list of creation times of the admin content (seconds since Jan 1, 1970)
+  string status = 6; // the NFT status bits (uint192)
+  string owner_address = 7; // the public address of the Owner
+  string admin_address = 8; // the public address of the Admin
+  string beneficiary_address = 9; // the public address of the Beneficiary
+}
+
+message GetAdminContentNodeCreatedEventsRequest {
+  uint32 from_block = 1; // the first block of interest
+  uint32 to_block = 2; // the last block of interest
+}
+message AdminContentNodeCreatedEvent {
+  string block_number = 1; // the block that emitted this Event
+  string token_id = 2; // the NFT id (uint64)
+  string content_cid_v1 = 3; // the ipfs CIDv1 address for a metadata.json file
+  string previous_cid_v1 = 4; // the ipfs CIDv1 address for the previous metadata.json file
+  string tx_hash = 5; // the hash of the transaction on chain
+}
+message GetAdminContentNodeCreatedEventsResponse {
+  repeated AdminContentNodeCreatedEvent events = 1;
+}
+
+message GetOwnerContentNodeCreatedEventsRequest {
+  uint32 from_block = 1; // the first block of interest
+  uint32 to_block = 2; // the last block of interest
+}
+message OwnerContentNodeCreatedEvent {
+  string block_number = 1; // the block that emitted this Event
+  string token_id = 2; // the NFT id (uint64)
+  string content_cid_v1 = 3; // the ipfs CIDv1 address for a metadata.json file
+  string previous_cid_v1 = 4; // the ipfs CIDv1 address for the previous metadata.json file
+  string tx_hash = 5; // the hash of the transaction on chain
+}
+message GetOwnerContentNodeCreatedEventsResponse {
+  repeated OwnerContentNodeCreatedEvent events = 1;
+}
+
+message GetNFTUpdatedEventsRequest {
+  uint32 from_block = 1; // the first block of interest
+  uint32 to_block = 2; // the last block of interest
+}
+
+message NFTUpdatedEvent {
+  string block_number = 1; // the block that emitted this Event
+  string token_id = 2; // the NFT id (uint64)
+  string status = 3; // the NFT status bits (uint192)
+  string owner_address = 4; // the public address of the Owner
+  string admin_address = 5; // the public address of the Admin
+  string beneficiary_address = 6; // the public address of the Beneficiary
+  string tx_hash = 7; // the hash of the transaction on chain
+}
+
+message GetNFTUpdatedEventsResponse {
+  repeated NFTUpdatedEvent events = 1;
+}
+
+message GetTransferEventsRequest {
+  uint32 from_block = 1; // the first block of interest
+  uint32 to_block = 2; // the last block of interest
+}
+
+message TransferEvent {
+  string block_number = 1; // the block that emitted this Event
+  string operator_address = 2; // the address that submitted the transaction
+  string from_address = 3; // the address that is debited by the transaction
+  string to_address = 4; //the address that is credited by the transaction
+  string token_id = 5; // the transferred token id (uint256) (SCI = 0)
+  string amount = 6; // the transferred token amount, either "1" for an NFT or a token value in attoSCI
+  string tx_hash = 7; // the hash of the transaction on chain
+}
+
+message GetTransferEventsResponse {
+  repeated TransferEvent events = 1; // collected from Transfer, TransferSingle, and TransferBatch events
+}
+
+message GetMarketplaceSaleEventsRequest {
+  uint32 from_block = 1; // the first block of interest
+  uint32 to_block = 2; // the last block of interest
+}
+
+message MarketplaceSaleEvent {
+  string block_number = 1; // the block that emitted this Event
+  string token_id = 2; // the transferred token id (uint256)
+  string buyer_address = 3; // the address of the buyer (received the NFT)
+  string price_atto_sci = 4; // the amount total amount paid by the buyer
+  string seller_address = 5; // the address of the seller (received price - royalty)
+  string beneficiary_address = 6; // the address of the beneficiary
+  string royalty_atto_sci = 7; // the amount paid to the beneficiary
+  string sold_at_sec = 8; // the time of sale (seconds since Jan 1, 1970)
+  string tx_hash = 9; // the hash of the transaction on chain
+}
+
+message GetMarketplaceSaleEventsResponse {
+  repeated MarketplaceSaleEvent events = 1; // collected from MarketplaceSale events
+}
+
+message RecoverUserGasRequest {
+  uint32 user_id = 1; // the userId of interest; used to derive the custodial wallet key
+}
+message RecoverUserGasResponse {
+  string user_address = 1; // the address of the user ex. "0x574B8c3df7413c5873F99422db020835712e9770"
+}
+
+message StreamNFTUpdatedEventsRequest {}
+message StreamNFTUpdatedEventsResponse {
+  NFTUpdatedEvent event = 1;
+}
+
+message StreamAdminContentNodeCreatedEventsRequest {}
+message StreamAdminContentNodeCreatedEventsResponse {
+  AdminContentNodeCreatedEvent event = 1;
+}
+
+message StreamOwnerContentNodeCreatedEventsRequest {}
+message StreamOwnerContentNodeCreatedEventsResponse {
+  OwnerContentNodeCreatedEvent event = 1;
+}
+
+message StreamTransferEventsRequest {}
+message StreamTransferEventsResponse {
+  TransferEvent event = 1;
+}
+
+message StreamMarketplaceSaleEventsRequest {}
+message StreamMarketplaceSaleEventsResponse {
+  MarketplaceSaleEvent event = 1;
+}
+
+message GetNFTUpdatedEventsFromTxHashRequest {
+  string tx_hash = 1; // the hash of the transaction on chain
+}
+message GetNFTUpdatedEventsFromTxHashResponse {
+  repeated NFTUpdatedEvent events = 1; // List of NFTUpdated events
+}
+
+message GetAdminContentNodeCreatedEventsFromTxHashRequest {
+  string tx_hash = 1; // the hash of the transaction on chain
+}
+message GetAdminContentNodeCreatedEventsFromTxHashResponse {
+  repeated AdminContentNodeCreatedEvent events = 1; // List of AdminContentNodeCreated events
+}
+
+message GetOwnerContentNodeCreatedEventsFromTxHashRequest {
+  string tx_hash = 1; // the hash of the transaction on chain
+}
+message GetOwnerContentNodeCreatedEventsFromTxHashResponse {
+  repeated OwnerContentNodeCreatedEvent events = 1; // List of OwnerContentNodeCreated events
+}
+
+message GetTransferEventsFromTxHashRequest {
+  string tx_hash = 1; // the hash of the transaction on chain
+}
+message GetTransferEventsFromTxHashResponse {
+  repeated TransferEvent events = 1; // List of Transfer events
+}
+
+message GetMarketplaceSaleEventsFromTxHashRequest {
+  string tx_hash = 1; // the hash of the transaction on chain
+}
+message GetMarketplaceSaleEventsFromTxHashResponse {
+  repeated MarketplaceSaleEvent events = 1; // List of MarketplaceSale events
+}

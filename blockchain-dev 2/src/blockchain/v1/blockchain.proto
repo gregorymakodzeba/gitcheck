@@ -1,0 +1,79 @@
+syntax = "proto3";
+
+package blockchain.v1;
+
+service BlockchainService {
+  // returns information for a provided custodial wallet index
+  rpc GetUserInfo(GetUserInfoRequest) returns (GetUserInfoResponse) {}
+
+  // get blockchain information (chain id and block height)
+  rpc GetChainInfo(GetChainInfoRequest) returns (GetChainInfoResponse) {}
+
+  // get blockchain information (chain id and block height)
+  rpc GetSuperadminInfo(GetSuperadminInfoRequest) returns (GetSuperadminInfoResponse) {}
+
+  // recover gas from a user account back to the hot wallet
+  rpc RecoverUserGas(RecoverUserGasRequest) returns (RecoverUserGasResponse) {}
+
+  // report on the status of a transaction and any event it has caused based on its tx_hash value
+  rpc GetTxStatus(GetTxStatusRequest) returns (GetTxStatusResponse) {}
+}
+
+message GetUserInfoRequest {
+  uint32 user_id = 1; // the userId of interest; used to derive the custodial wallet key
+}
+message GetUserInfoResponse {
+  string user_address = 1; // the 160 bit hex address of the user ex. "0x574B8c3df7413c5873F99422db020835712e9770"
+  string chain_id = 2; // the chain identifier (ex. Avalanche Fuji is "43113", Hardhat is "31337")
+}
+
+message GetChainInfoRequest {
+  /* empty */
+}
+message GetChainInfoResponse {
+  string chain_id = 1; // the chain identifier (ex. Avalanche Fuji is "43113", Hardhat is "31337")
+  string last_block = 2; // the last known block height
+  string block_timestamp_sec = 3; // the last block timestamp (seconds since Jan 1, 1970)
+}
+
+message GetSuperadminInfoRequest {
+  /* empty */
+}
+message GetSuperadminInfoResponse {
+  string hot_wallet_address = 1; // the address of the superadmin account
+  string hot_wallet_balance_atto_gas = 2; // The amount of gas owned by the superadmin account (attogas / wei)
+}
+
+message RecoverUserGasRequest {
+  uint32 user_id = 1; // the userId of interest; used to derive the custodial wallet key
+}
+message RecoverUserGasResponse {
+  string user_address = 1; // the address of the user ex. "0x574B8c3df7413c5873F99422db020835712e9770"
+}
+
+message GetTxStatusRequest {
+  string tx_hash = 1; // the hash of the transaction on chain
+}
+
+message GetTxStatusResponse {
+  enum TxStatus {
+    TX_STATUS_UNSPECIFIED = 0;
+    TX_STATUS_PENDING = 1;
+    TX_STATUS_SUCCESS = 2;
+    TX_STATUS_FAILED = 3;
+  }
+
+  TxStatus status = 1; // The status of the transaction
+  string block_hash = 2; // The hash of the block in which the transaction was included (if applicable)
+  string block_number = 3; // The block number in which the transaction was included (if applicable)
+  string cost_atto_gas = 4; // The amount of gas used by the transaction (attogas / wei)
+  string gas_price_atto_gas = 5; // The gas price of the transaction (attogas / wei)
+  string from_address = 6; // The sender's 160 bit address
+  string to_address = 7; // The recipient's 160 bit address (if applicable)
+  string contract_address = 8; // The contract address created by the transaction (if applicable)
+  string nonce = 9; // The nonce associated with the transaction
+  string value_atto_gas = 10; // The value transferred by the transaction (attogas / wei)
+  bytes input_data = 11; // The input data of the transaction
+  string error_message = 12; // Error message, if the transaction failed
+  string block_timestamp_sec = 13; // The timestamp of the block (seconds since Jan 1, 1970)
+}
